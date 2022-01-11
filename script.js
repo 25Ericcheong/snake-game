@@ -55,38 +55,31 @@ let moveRight = ([t, l]) => [t, l + 1];
 let moveLeft = ([t, l]) => [t, l - 1];
 let moveUp = ([t, l]) => [t - 1, l];
 let moveDown = ([t, l]) => [t + 1, l];
+
 let currentDirection = moveRight;
-let flushedDirection = currentDirection;
+let directionQueue = [];
 
 window.addEventListener('keydown', (e) => {
   switch (e.key) {
   case 'ArrowLeft':
   case 'A':
   case 'a':
-    if (flushedDirection !== moveRight) {
-      currentDirection = moveLeft;
-    }
+    directionQueue.push(moveLeft);
     break;
   case 'ArrowRight':
   case 'd':
   case 'D':
-    if (flushedDirection !== moveLeft) {
-      currentDirection = moveRight;
-    }
+    directionQueue.push(moveRight);
     break;
   case 'ArrowUp':
   case 'W':
   case 'w':
-    if (flushedDirection !== moveDown) {
-      currentDirection = moveUp;
-    }
+    directionQueue.push(moveUp);
     break;
   case 'ArrowDown':
   case 'S':
   case 's':
-    if (flushedDirection !== moveUp) {
-      currentDirection = moveDown;
-    }
+    directionQueue.push(moveDown);
     break;
   }
 })
@@ -94,11 +87,38 @@ window.addEventListener('keydown', (e) => {
 function step() {
   currentSnake.shift();
   let head = currentSnake[currentSnake.length - 1];
-  let nextHead = currentDirection(head);
-  flushedDirection = currentDirection;
-  currentSnake.push(nextHead);
 
+  let nextDirection = currentDirection;
+  while (directionQueue > 0) {
+    let candidateDirection = directionQueue.shift();
+
+    if (areOpposite(candidateDirection, currentDirection)) {
+      continue;
+    }
+    nextDirection = candidateDirection;
+    break;
+  }
+  currentDirection = nextDirection;
+  let nextHead = currentDirection(head);
+
+  currentSnake.push(nextHead);
   drawSnake(currentSnake);
+}
+
+function areOpposite(dir1, dir2) {
+  if (dir1 == moveLeft && dir2 == moveRight) {
+    return true;
+  }
+  if (dir1 == moveRight && dir2 == moveLeft) {
+    return true;
+  }
+  if (dir1 == moveUp && dir2 == moveDown) {
+    return true;
+  }
+  if (dir1 == moveDown && dir2 == moveUp) {
+    return true;
+  }
+  return false
 }
 
 
