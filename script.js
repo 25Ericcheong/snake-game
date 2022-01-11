@@ -26,19 +26,10 @@ function initializeCanvas() {
 
 initializeCanvas();
 
-drawSnake([
-  [0, 0],
-  [0, 1],
-  [0, 2],
-  [0, 3],
-  [0, 4]
-])
-
 function drawSnake(snake) {
   let snakePositions = new Set();
-  for (let [x, y] of snake) {
-    let position = `${x} _ ${y}`;
-    console.log(position);
+  for (let [top, left] of snake) {
+    let position = `${top} _ ${left}`;
     snakePositions.add(position);
   }
 
@@ -51,3 +42,32 @@ function drawSnake(snake) {
     }
   }
 }
+
+let currentSnake = [
+  [0, 0],
+  [0, 1],
+  [0, 2],
+  [0, 3],
+  [0, 4]
+]
+
+let moveRight = ([t, l]) => [t, l + 1];
+let moveLeft = ([t, l]) => [t, l - 1];
+let moveTop = ([t, l]) => [t - 1, l];
+let moveBottom = ([t, l]) => [t + 1, l];
+let currentDirection = moveBottom;
+
+function step() {
+  currentSnake.shift();
+  let head = currentSnake[currentSnake.length - 1];
+  let nextHead = currentDirection(head);
+  currentSnake.push(nextHead);
+
+  drawSnake(currentSnake);
+}
+
+
+drawSnake(currentSnake);
+setInterval(() => {
+  step();  
+}, 100);
