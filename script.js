@@ -114,9 +114,17 @@ function step() {
 }
 
 function spawnFood() {
-  let nextTop = Math.floor(Math.random() * ROWS);
-  let nextLeft = Math.floor(Math.random() * COLS);
-  return [nextTop, nextLeft];
+  while (true) {
+    let nextTop = Math.floor(Math.random() * ROWS);
+    let nextLeft = Math.floor(Math.random() * COLS);
+    let key = toKey([nextTop, nexteft]);
+
+    if (currentSnakeKeys.has(key)) {
+      continue;
+    }
+
+    return [nextTop, nextLeft];
+  }
 }
 
 function areOpposite(dir1, dir2) {
