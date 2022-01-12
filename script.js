@@ -84,11 +84,14 @@ function step() {
     popTail();
   }
   drawCanvas();
+
+  if (window.location.search == '?debug') {
+    checkIntegrity();
+  }
 }
 
 function pushHead(nextHead) {
   currentSnake.push(nextHead);
-
   let key = toKey(nextHead);
   currentVacantKeys.delete(key);
   currentSnakeKeys.add(key);
@@ -133,6 +136,30 @@ function areOpposite(dir1, dir2) {
   return false
 }
 
+function areSameSets(a, b) {
+  return (
+    JSON.stringify([...a].sort()) === JSON.stringify([...b].sort())
+  );
+}
+
+function partitionCells(snake) {
+  let snakeKeys = new Set();
+  let vacantKeys = new Set();
+
+  for (let i = 0; i < ROWS; i++) {
+    for (let j = 0; j < COLS; j++) {
+      vacantKeys.add(toKey([i, j]));
+    }
+  }
+
+  for (let cell of snake) {
+    let key = toKey(cell);
+    vacantKeys.delete(key);
+    snakeKeys.add(key);
+  }
+  return [snakeKeys, vacantKeys]
+}
+
 function checkValidHead(keys, cell) {
   let [top, left] = cell;
   if (top < 0 || left < 0) {
@@ -147,6 +174,84 @@ function checkValidHead(keys, cell) {
     return false;
   }
   return true
+}
+
+// there should not be food in the snake (same coordinates)
+// food should not be out of game boundaries
+// snake should never intersect itself (should not have same coordinates)
+// snake should be continuous
+// snake should not be out of game boundaries
+// same cell can never be both vacant and snake
+// union of vacant and snake must be equal to entire game field
+// snake keys set must match snake array
+function checkIntegrity() {
+  let failedCheck = null;
+  let foodCount = 0;
+  let allKeys = new Set();
+
+  // checks for food spawning
+  for (let i = 0; i < ROWS; i++) {
+    for (let j = 0; j < COLS; j++) {
+      let key = toKey([i, j]);
+      allKeys.add(key);
+      if (key === currentFoodKey) {
+        foodCount++;
+      }
+    }
+  }
+
+  if (foodCount !== 1) {
+    failedCheck = `There can't be 2 foods in game`;
+  }
+
+  let [snakeKeys, vacantKeys] = partitionCells(currentSnake);
+  if (areSameSets(snakeKeys, currentSnakeKeys)) {
+    failedCheck = `Snake keys should match`;
+  }
+
+  if (areSameSets(vacantKeys, currentSnakeKeys)) {
+    failedCheck = `Vacant keys should match`;
+  }
+
+  if (currentSnakeKeys.has(currentFoodKey)) {
+    failedCheck = `There should not be food in the snake`;
+  }
+
+  if (currentSnake.length !== currentSnakeKeys.size) {
+    failedCheck = `The snake should not intersect itself`;
+  }
+
+  if (!areSameSets(
+    new Set([...currentSnakeKeys, ...currentVacantKeys]),
+    allKeys
+  )) {
+    failedCheck = `Everything should be within game field`;
+  }
+
+  let firstCell = currentSnake[0];
+  for (let i = 1; i < currentSnake.length; i++) {
+    let cell = currentSnake[i];
+    let prevCell = currentSnake[i - 1];
+    let dy = cell[0] - prevCell[0];
+    let dx = cell[1] - prevCell[1];
+    let isOk = 
+    (dy == 0 && Math.abs(dx) === 1) ||
+    (dx == 0 && Math.abs(dy) === 1);
+
+    if (!isOk) {
+      failedCheck = `Snake should be continuous`;
+    }
+  }
+
+  if (failedCheck !== null) {
+    canvas.style.borderColor = 'purple';
+    clearInterval(gameInterval);
+    throw Error(failedCheck);
+  }
+  let currentSnake;
+  let currentSnakeKeys;
+  let currentVacantKeys;
+  let currentFoodKey;
 }
 
 // for interactions which listens to users input or responds depending on what happens to snake in game
@@ -207,6 +312,9 @@ function startGame() {
   }
 
   currentFoodKey = spawnFood();
+  [snakeKeys, vacantKeys] = partitionCells(currentSnake);
+  currentSnakeKeys = snakeKeys;
+  currentVacantKeys = vacantKeys;
 
   canvas.style.borderColor = '';
   gameInterval = setInterval(step, 100);
