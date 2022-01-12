@@ -100,6 +100,11 @@ function step() {
   currentDirection = nextDirection;
   let nextHead = currentDirection(head);
 
+  if (!checkValidHead(nextHead)) {
+    stopGame();
+    return;
+  }
+
   currentSnake.push(nextHead);
   drawSnake(currentSnake);
 }
@@ -120,8 +125,22 @@ function areOpposite(dir1, dir2) {
   return false
 }
 
+function checkValidHead([top, left]) {
+  if (top < 0 || left < 0) {
+    return false;
+  }
+
+  if (top >= ROWS || left >= COLS) {
+    return false;
+  }
+  return true;
+}
+
+function stopGame() {
+  canvas.style.borderColor = 'red';
+}
 
 drawSnake(currentSnake);
-setInterval(() => {
+let gameInterval = setInterval(() => {
   step();  
 }, 100);
