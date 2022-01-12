@@ -100,8 +100,7 @@ function step() {
     stopGame(false);
     return;
   }
-  currentSnake.push(nextHead);
-
+  pushHead(nextHead);
   if (toKey(nextHead) == currentFoodKey) {
     let nextFoodKey = spawnFood();
     if (nextFoodKey === null) {
@@ -110,10 +109,20 @@ function step() {
     }
     currentFoodKey = nextFoodKey;
   } else {
-    currentSnake.shift();
+    popTail();
   }
   updateKeySets();
   drawCanvas();
+}
+
+function pushHead(nextHead) {
+  currentSnake.push(nextHead);
+  updateKeySets();
+}
+
+function popTail() {
+  currentSnake.shift();
+  updateKeySets();
 }
 
 function updateKeySets() {
