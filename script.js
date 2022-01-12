@@ -26,12 +26,17 @@ function initializeCanvas() {
 
 initializeCanvas();
 
-function drawSnake(snake) {
+function getSnakePositionSet(snake) {
   let snakePositions = new Set();
   for (let [top, left] of snake) {
     let position = `${top} _ ${left}`;
     snakePositions.add(position);
   }
+  return snakePositions;
+}
+
+function drawSnake(snake) {
+  let snakePositions = getSnakePositionSet(snake);
 
   for (let i = 0; i < ROWS; i++) {
     for (let j = 0; j < COLS; j++) {
@@ -87,8 +92,8 @@ window.addEventListener('keydown', (e) => {
 function step() {
   currentSnake.shift();
   let head = currentSnake[currentSnake.length - 1];
-
   let nextDirection = currentDirection;
+
   while (directionQueue.length > 0) {
     let candidateDirection = directionQueue.shift();
 
@@ -100,7 +105,7 @@ function step() {
   currentDirection = nextDirection;
   let nextHead = currentDirection(head);
 
-  if (!checkValidHead(nextHead)) {
+  if (!checkValidHead(currentSnake, nextHead)) {
     stopGame();
     return;
   }
@@ -125,7 +130,7 @@ function areOpposite(dir1, dir2) {
   return false
 }
 
-function checkValidHead([top, left]) {
+function checkValidHead(snake, [top, left]) {
   if (top < 0 || left < 0) {
     return false;
   }
@@ -133,11 +138,18 @@ function checkValidHead([top, left]) {
   if (top >= ROWS || left >= COLS) {
     return false;
   }
-  return true;
+
+  let snakePositions = getSnakePositionSet(snake);
+  let position = `${top} _ ${left}`;
+  if (snakePositions.has(position)) {
+    return false;
+  }
+  return true
 }
 
 function stopGame() {
   canvas.style.borderColor = 'red';
+  clearInterval(gameInterval);
 }
 
 drawSnake(currentSnake);
