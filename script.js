@@ -9,6 +9,7 @@ let moveLeft = ([t, l]) => [t, l - 1];
 let moveUp = ([t, l]) => [t - 1, l];
 let moveDown = ([t, l]) => [t + 1, l];
 
+// renders on browser
 function initializeCanvas() {
   for (let i = 0; i < ROWS; i++) {
     for (let j = 0; j < COLS; j++) {
@@ -52,36 +53,7 @@ let currentFoodKey;
 let currentDirection;
 let directionQueue;
 
-window.addEventListener('keydown', (e) => {
-  switch (e.key) {
-  case 'ArrowLeft':
-  case 'A':
-  case 'a':
-    directionQueue.push(moveLeft);
-    break;
-  case 'ArrowRight':
-  case 'd':
-  case 'D':
-    directionQueue.push(moveRight);
-    break;
-  case 'ArrowUp':
-  case 'W':
-  case 'w':
-    directionQueue.push(moveUp);
-    break;
-  case 'ArrowDown':
-  case 'S':
-  case 's':
-    directionQueue.push(moveDown);
-    break;
-  case 'r':
-  case 'R':
-    stopGame(false);
-    startGame();
-    break;
-  }
-})
-
+// simulate time moving / updates game
 function step() {
   let head = currentSnake[currentSnake.length - 1];
   let nextDirection = currentDirection;
@@ -111,7 +83,6 @@ function step() {
   } else {
     popTail();
   }
-  updateKeySets();
   drawCanvas();
 }
 
@@ -145,6 +116,7 @@ function spawnFood() {
   }
 }
 
+// helper functions
 function areOpposite(dir1, dir2) {
   if (dir1 == moveLeft && dir2 == moveRight) {
     return true;
@@ -176,6 +148,37 @@ function checkValidHead(keys, cell) {
   }
   return true
 }
+
+// for interactions which listens to users input or responds depending on what happens to snake in game
+window.addEventListener('keydown', (e) => {
+  switch (e.key) {
+  case 'ArrowLeft':
+  case 'A':
+  case 'a':
+    directionQueue.push(moveLeft);
+    break;
+  case 'ArrowRight':
+  case 'd':
+  case 'D':
+    directionQueue.push(moveRight);
+    break;
+  case 'ArrowUp':
+  case 'W':
+  case 'w':
+    directionQueue.push(moveUp);
+    break;
+  case 'ArrowDown':
+  case 'S':
+  case 's':
+    directionQueue.push(moveDown);
+    break;
+  case 'r':
+  case 'R':
+    stopGame(false);
+    startGame();
+    break;
+  }
+})
 
 function stopGame(success) {
   canvas.style.borderColor = success ? 'green' : 'red';
