@@ -26,7 +26,7 @@ function initializeCanvas() {
 
 initializeCanvas();
 
-function drawSnake() {
+function drawCanvas() {
   let foodKey = toKey(currentFood);
 
   for (let i = 0; i < ROWS; i++) {
@@ -90,7 +90,6 @@ window.addEventListener('keydown', (e) => {
 })
 
 function step() {
-  currentSnake.shift();
   let head = currentSnake[currentSnake.length - 1];
   let nextDirection = currentDirection;
 
@@ -104,15 +103,25 @@ function step() {
   }
   currentDirection = nextDirection;
   let nextHead = currentDirection(head);
-
   if (!checkValidHead(currentSnakeKeys, nextHead)) {
     stopGame();
     return;
   }
-
   currentSnake.push(nextHead);
+
+  if (toKey(nextHead) == toKey(currentFood)) {
+    moveFood();
+  } else {
+    currentSnake.shift();
+  }
   currentSnakeKeys = toKeySet(currentSnake);
-  drawSnake();
+  drawCanvas();
+}
+
+function moveFood() {
+  let nextTop = Math.floor(Math.random() * ROWS);
+  let nextLeft = Math.floor(Math.random() * COLS);
+  currentFood = [nextTop, nextLeft];
 }
 
 function areOpposite(dir1, dir2) {
@@ -152,7 +161,7 @@ function stopGame() {
   clearInterval(gameInterval);
 }
 
-drawSnake();
+drawCanvas();
 let gameInterval = setInterval(() => {
   step();  
 }, 100);
