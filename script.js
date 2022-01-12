@@ -30,15 +30,12 @@ function initializeCanvas() {
 initializeCanvas();
 
 function drawCanvas() {
-  let foodKey = toKey(currentFood);
-
   for (let i = 0; i < ROWS; i++) {
     for (let j = 0; j < COLS; j++) {
       let key = toKey([i, j]);
       let pixel = pixels.get(key);
-
       let background = 'white';
-      if (key === foodKey) {
+      if (key === currentFoodKey) {
         background = 'purple';
       } else if (currentSnakeKeys.has(key)) {
         background = 'black';
@@ -50,7 +47,8 @@ function drawCanvas() {
 
 let currentSnake;
 let currentSnakeKeys;
-let currentFood;
+let currentVacantKeys;
+let currentFoodKey;
 let currentDirection;
 let directionQueue;
 
@@ -78,7 +76,7 @@ window.addEventListener('keydown', (e) => {
     break;
   case 'r':
   case 'R':
-    stopGame();
+    stopGame(false);
     startGame();
     break;
   }
@@ -99,31 +97,54 @@ function step() {
   currentDirection = nextDirection;
   let nextHead = currentDirection(head);
   if (!checkValidHead(currentSnakeKeys, nextHead)) {
-    stopGame();
+    stopGame(false);
     return;
   }
   currentSnake.push(nextHead);
 
-  if (toKey(nextHead) == toKey(currentFood)) {
-    currentFood = spawnFood();
+  if (toKey(nextHead) == currentFoodKey) {
+    let nextFoodKey = spawnFood();
+    if (nextFoodKey === null) {
+      stopGame(true);
+      return;
+    }
+    currentFoodKey = nextFoodKey;
   } else {
     currentSnake.shift();
   }
-  currentSnakeKeys = toKeySet(currentSnake);
+  updateKeySets();
   drawCanvas();
 }
 
-function spawnFood() {
-  while (true) {
-    let nextTop = Math.floor(Math.random() * ROWS);
-    let nextLeft = Math.floor(Math.random() * COLS);
-    let key = toKey([nextTop, nexteft]);
+function updateKeySets() {
+  currentSnakeKeys = new Set();
+  currentVacantKeys = new Set();
 
-    if (currentSnakeKeys.has(key)) {
-      continue;
+  for (let i = 0; i < ROWS; i++) {
+    for (let j = 0; j < COLS; j++) {
+      currentVacantKeys.add(toKey([i, j]));
     }
+  }
 
-    return [nextTop, nextLeft];
+  for (let cell of currentSnake) {
+    let key = toKey(cell);
+    currentVacantKeys.delete(key);
+    currentSnakeKeys.add(key);
+  }
+}
+
+function spawnFood() {
+  if (currentVacantKeys.size === 0) {
+    return null;
+  }
+  let choice = Math.floor(Math.random() * currentVacantKeys.size);
+
+  let i = 0;
+  for (let key of currentVacantKeys) {
+    if (i === choice) {
+      return key
+    }
+    i++;
   }
 }
 
@@ -159,8 +180,8 @@ function checkValidHead(keys, cell) {
   return true
 }
 
-function stopGame() {
-  canvas.style.borderColor = 'red';
+function stopGame(success) {
+  canvas.style.borderColor = success ? 'green' : 'red';
   clearInterval(gameInterval);
 }
 
@@ -168,8 +189,10 @@ function startGame() {
   directionQueue = [];
   currentDirection = moveRight;
   currentSnake = makeInitialSnake();
-  currentSnakeKeys = toKeySet(currentSnake);
-  currentFood = spawnFood();
+  currentSnakeKeys = new Set();
+  currentVacantKeys = new Set();
+  updateKeySets();
+  currentFoodKey = spawnFood();
 
   canvas.style.borderColor = '';
   gameInterval = setInterval(step, 100);
@@ -190,13 +213,4 @@ function makeInitialSnake() {
 
 function toKey([top, left]) {
   return `${top} _ ${left}`;
-}
-
-function toKeySet(snake) {
-  let set = new Set();
-  for (let cell of snake) {
-    let key = toKey(cell);
-    set.add(key);
-  }
-  return set;
 }
