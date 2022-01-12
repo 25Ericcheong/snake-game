@@ -117,29 +117,17 @@ function step() {
 
 function pushHead(nextHead) {
   currentSnake.push(nextHead);
-  updateKeySets();
+
+  let key = toKey(nextHead);
+  currentVacantKeys.delete(key);
+  currentSnakeKeys.add(key);
 }
 
 function popTail() {
-  currentSnake.shift();
-  updateKeySets();
-}
-
-function updateKeySets() {
-  currentSnakeKeys = new Set();
-  currentVacantKeys = new Set();
-
-  for (let i = 0; i < ROWS; i++) {
-    for (let j = 0; j < COLS; j++) {
-      currentVacantKeys.add(toKey([i, j]));
-    }
-  }
-
-  for (let cell of currentSnake) {
-    let key = toKey(cell);
-    currentVacantKeys.delete(key);
-    currentSnakeKeys.add(key);
-  }
+  let tail = currentSnake.shift();
+  let key = toKey(tail);
+  currentVacantKeys.add(key);
+  currentSnakeKeys.delete(key);
 }
 
 function spawnFood() {
@@ -198,9 +186,23 @@ function startGame() {
   directionQueue = [];
   currentDirection = moveRight;
   currentSnake = makeInitialSnake();
+
+  // creates keys for game
   currentSnakeKeys = new Set();
   currentVacantKeys = new Set();
-  updateKeySets();
+
+  for (let i = 0; i < ROWS; i++) {
+    for (let j = 0; j < COLS; j++) {
+      currentVacantKeys.add(toKey([i, j]));
+    }
+  }
+
+  for (let cell of currentSnake) {
+    let key = toKey(cell);
+    currentVacantKeys.delete(key);
+    currentSnakeKeys.add(key);
+  }
+
   currentFoodKey = spawnFood();
 
   canvas.style.borderColor = '';
