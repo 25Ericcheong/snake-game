@@ -89,14 +89,13 @@ function step() {
   let head = currentSnake[currentSnake.length - 1];
 
   let nextDirection = currentDirection;
-  while (directionQueue > 0) {
+  while (directionQueue.length > 0) {
     let candidateDirection = directionQueue.shift();
 
-    if (areOpposite(candidateDirection, currentDirection)) {
-      continue;
+    if (!areOpposite(candidateDirection, currentDirection)) {
+      nextDirection = candidateDirection;
+      break;
     }
-    nextDirection = candidateDirection;
-    break;
   }
   currentDirection = nextDirection;
   let nextHead = currentDirection(head);
